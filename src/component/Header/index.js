@@ -1,12 +1,15 @@
 import styles from './Header.modules.scss';
 import classNames from 'classnames/bind';
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const cx = classNames.bind(styles);
 
 function Header() {
+
     const [showPopup, setShowPopup] = useState(false);
     const popupRef = useRef(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         function handleClickOutside(event) {
@@ -19,6 +22,11 @@ function Header() {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, []);
+
+    const handleLogout = () => {
+        localStorage.clear();
+        navigate("/signin")
+    }
 
     return (
         <header className={cx('header')}>
@@ -45,7 +53,7 @@ function Header() {
                                         <button>Settings</button>
                                     </li>
                                     <li className={cx('user_popup-list-item')}>
-                                        <button>Logout</button>
+                                        <button onClick={() => handleLogout()}>Logout</button>
                                     </li>
                                 </ul>
                             </div>
