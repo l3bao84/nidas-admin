@@ -3,26 +3,17 @@ import classNames from 'classnames/bind';
 import { useState, useEffect, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch, faPlus, faEllipsisVertical, faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
+import { useOrders, updateOrder } from '../service';
 
 const cx = classNames.bind(styles);
 
 function Orders() {
     const [searchTerm, setSearchTerm] = useState('');
-    const [showActionMenu, setShowActionMenu] = useState(false);
-    const actionMenuRef = useRef(null);
-
-    useEffect(() => {
-        function handleClickOutside(event) {
-            if (actionMenuRef.current && !actionMenuRef.current.contains(event.target)) {
-                setShowActionMenu(false);
-            }
-        }
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, []);
+    const [page, setPage] = useState(1);
+    const { orders, totalPages, refreshOrders } = useOrders(searchTerm, page);
+    const [activePopupMenuId, setActivePopupMenuId] = useState(null);
+    const statusOptions = ['PENDING CONFIRMATION', 'PREPARING','DELIVERING', 'CANCELLED', 'COMPLETED'];
+    const [selectedStatus, setSeledStatus] = useState('');
 
     const handleInputChange = (event) => {
         setSearchTerm(event.target.value);
@@ -31,6 +22,41 @@ function Orders() {
     const handleSearch = (e) => {
         e.preventDefault();
     };
+
+    const handlePageChange = (value) => {
+        setPage(value);
+        refreshOrders(value);
+    };
+
+    const handleShowPopup = (id) => {
+        setActivePopupMenuId(id);
+    };
+
+    const handleAction = async (e, orderId, status) => {
+        e.stopPropagation();
+        const formData = new FormData();
+        formData.append('id', orderId);
+        formData.append('status', status);
+        handleUpdate(formData)
+        setActivePopupMenuId(null);
+    };
+
+    const handleStatusChange = async (id, status) => {
+        const formData = new FormData();
+        formData.append('id', id);
+        formData.append('status', status);
+        handleUpdate(formData)
+    };
+
+    const handleUpdate = async (formData) => {
+        try {
+            await updateOrder(formData);
+            alert("Order updated successfully!");
+            refreshOrders(page);
+        } catch (error) {
+            alert("Cannot accept order: " + error.message);
+        }
+    }
 
     return (
         <div className={cx('overview_container')}>
@@ -69,66 +95,75 @@ function Orders() {
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>1</td>
-                                <td>
-                                    <span>04/05/2002</span>
-                                </td>
-                                <td>
-                                    <span>COD</span>
-                                </td>
-                                <td>5,800,000</td>
-                                <td>
-                                    <div className={cx("order_status-selection")}>
-                                        <select name="category" >
-                                            <option>PENDING CONFIRMATION</option>
-                                            <option>DELIVERING</option>
-                                            <option>CANCELLED</option>
-                                            <option>COMPLETED</option>
-                                        </select>
-                                    </div>
-                                </td>
-                                <td>Bài Trượng, Hoàng Diệu, Chương Mỹ, Hà Nội</td>
-                                <th>Standard</th>
-                                <td>
-                                    <div
-                                        onClick={() => setShowActionMenu(!showActionMenu)}
-                                        className={cx('actions')}
-                                        ref={actionMenuRef}
-                                    >
-                                        <FontAwesomeIcon icon={faEllipsisVertical} />
-                                        {showActionMenu && (
-                                            <div className={cx('action_menu')}>
-                                                <button
-                                                    style={{ backgroundColor: 'Lime' }}
-                                                    className={cx('action_button')}
-                                                >
-                                                    Refuse
-                                                </button>
-                                                <button
-                                                    style={{ backgroundColor: '#FF0000', color: '#fff' }}
-                                                    className={cx('action_button')}
-                                                >
-                                                    Accept
-                                                </button>
+                            {orders &&
+                                orders.map((item, index) => (
+                                    <tr key={index}>
+                                        <td>{index + 1}</td>
+                                        <td>
+                                            <span>{item.orderDate}</span>
+                                        </td>
+                                        <td>
+                                            <span>{item.paymentStatus}</span>
+                                        </td>
+                                        <td>{`$${item.totalAmount}`}</td>
+                                        <td>
+                                            <div className={cx('order_status-selection')}>
+                                                <select name="category" value={item.orderStatus} onChange={(e) => handleStatusChange(item.orderId, e.target.value)}>
+                                                    {statusOptions.map((status) => (
+                                                        <option key={status} value={status}>
+                                                            {status}
+                                                        </option>
+                                                    ))}
+                                                </select>
                                             </div>
-                                        )}
-                                    </div>
-                                </td>
-                            </tr>
+                                        </td>
+                                        <td>{item.shippingAddress}</td>
+                                        <th>{item.shippingMethod}</th>
+                                        <td>
+                                            <div
+                                                onClick={() => handleShowPopup(item.orderId)}
+                                                className={cx('actions')}
+                                            >
+                                                <FontAwesomeIcon icon={faEllipsisVertical} />
+                                                {item.orderStatus === 'PENDING CONFIRMATION' && activePopupMenuId !== null && activePopupMenuId === item.orderId && (
+                                                    <div
+                                                        onClick={() => setActivePopupMenuId(null)}
+                                                        className={cx('action_menu')}
+                                                    >
+                                                        <button
+                                                            style={{ backgroundColor: 'Lime' }}
+                                                            className={cx('action_button')}
+                                                            onClick={(e) => handleAction(e, item.orderId, 'PREPARING')}
+                                                        >
+                                                            Accept
+                                                        </button>
+                                                        <button
+                                                            style={{ backgroundColor: '#FF0000', color: '#fff' }}
+                                                            className={cx('action_button')}
+                                                            onClick={(e) => handleAction(e, item.orderId, 'CANCELLED')}
+                                                        >
+                                                            Reject
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
                         </tbody>
                     </table>
                     <div className={cx('pagination_container')}>
                         <nav>
-                            <a className={cx('prev_page')}>
+                            <a onClick={() => page !== 1 && handlePageChange(page - 1)} className={cx('prev_page')}>
                                 <FontAwesomeIcon style={{ fontSize: '16px' }} icon={faChevronLeft} />
                             </a>
                             <div className={cx('page_link')}>
-                                <a>1</a>
-                                <a>2</a>
-                                <a>3</a>
+                                <span>{page}</span>
                             </div>
-                            <a className={cx('next_page')}>
+                            <a
+                                onClick={() => page !== totalPages && handlePageChange(page + 1)}
+                                className={cx('next_page')}
+                            >
                                 <FontAwesomeIcon style={{ fontSize: '16px' }} icon={faChevronRight} />
                             </a>
                         </nav>

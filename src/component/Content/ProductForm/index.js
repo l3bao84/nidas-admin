@@ -1,14 +1,12 @@
 import styles from '../Content.modules.scss';
 import classNames from 'classnames/bind';
 import { useState, useRef } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faClose } from '@fortawesome/free-solid-svg-icons';
-import { addProduct } from '../service';
+import { addProduct, updateProduct } from '../service';
 
 const cx = classNames.bind(styles);
 
-function AddProductForm({ data, categories, onClose }) {
-
+function ProductForm({ data, categories , onClose, title, refreshData}) {
+    
     const inputImageRef = useRef(null);
     const [previewImage, setPreviewImage] = useState(data.images.map(image => `http://localhost:8080/img/${image}`));
     const [seletedCategory, setSeletedCategory] = useState(categories && categories[0] && categories[0].categoryName);
@@ -18,11 +16,6 @@ function AddProductForm({ data, categories, onClose }) {
     const [stockQuantity, setStockQuantity] = useState(data.stock);
     const [piece, setPiece] = useState(data.pieces);
     const [imageFiles, setImageFiles] = useState([]);
-
-    const handleCloseForm = (e) => {
-        e.preventDefault();
-        onClose(false);
-    };
 
     const handleChooseImage = (e) => {
         e.preventDefault();
@@ -71,22 +64,31 @@ function AddProductForm({ data, categories, onClose }) {
         });
 
         try {
-            await addProduct(formData);
+            if(title === 'Add New Product') {
+                await addProduct(formData);
+                alert("Add product successfully!");
+            }
+            if(title === 'Update Product') {
+                await updateProduct(formData, data.productId);
+                alert("Add product successfully!");
+            }
             onClose(false);
-            alert("Add product successfully!");
+            refreshData(1)
         } catch (error) {
-            alert("Cannot add product: " + error.message);
+            alert("Something went wrong, error: " + error.message);
         }
     }
-    
+
+    const handleCloseForm = (e) => {
+        e.preventDefault();
+        onClose(false);
+    }
+
     return (
-        <div className={cx('overlay')}>
-            <div className={cx('modal_container')}>
-                <div className={cx('modal_container-header')}>
-                    <h2>Add New Product</h2>
-                    <button onClick={(e) => handleCloseForm(e)} className={cx('button_close-header')}>
-                        <FontAwesomeIcon icon={faClose} style={{ fontSize: '24px' }} />
-                    </button>
+        <div className={cx('overview_container')}>
+            <div className={cx('overview_wrapper')}>
+                <div className={cx('overview_title')}>
+                    <h1>{title}</h1>
                 </div>
                 <div className={cx('form_container')}>
                     <form encType="multipart/form-data">
@@ -108,7 +110,7 @@ function AddProductForm({ data, categories, onClose }) {
                         </div>
                         <div className={cx('input_form_container')}>
                             <label htmlFor="des">Enter the description</label>
-                            <textarea name="des" cols="30" rows="4" value={productDescription} onChange={(e) => setProductDescription(e.target.value)}></textarea>
+                            <textarea name="des" cols="64" rows="6" value={productDescription} onChange={(e) => setProductDescription(e.target.value)}></textarea>
                         </div>
                         <div className={cx('input_form_container')}>
                             <label htmlFor="category">Select Category</label>
@@ -123,7 +125,7 @@ function AddProductForm({ data, categories, onClose }) {
                                 ))}
                             </select>
                         </div>
-                        <div style={{alignItems: "center"}} className={cx('input_form_container')}>
+                        <div style={{flexDirection: "column"}} className={cx('input_form_container-image')}>
                             <button onClick={(e) => handleChooseImage(e)} className={cx('choose-image-button')}>
                                 Upload image
                             </button>
@@ -176,9 +178,8 @@ function AddProductForm({ data, categories, onClose }) {
                     </form>
                 </div>
             </div>
-            
         </div>
     );
 }
 
-export default AddProductForm;
+export default ProductForm;

@@ -208,9 +208,10 @@
     display: flex;
     flex-direction: column;
     box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-    top: 24px;
-    right: -38px;
+    top: -32px;
+    right: 20px;
     gap: 10px;
+    z-index: 3;
 }
 .action_button {
     background: transparent;
@@ -229,12 +230,18 @@
     flex-direction: row;
     justify-content: center;
 }
-.page_link a {
+.page_link {
     padding: 0 10px;
+    cursor: pointer;
 }
 .prev_page,
 .next_page {
     padding: 0 10px;
+    cursor: pointer;
+}
+.prev_page:hover,
+.next_page:hover {
+    text-decoration: underline;
 }
 
 /*add product form*/
@@ -285,7 +292,15 @@
     gap: 10px;
 }
 .input_form_container {
-    width: 48%;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 20px;
+    padding-bottom: 10px;
+}
+.input_form_container-image {
+    width: 100%;
     display: flex;
     flex-direction: column;
     padding-bottom: 10px;
@@ -293,6 +308,7 @@
 .input_form_container > label {
     padding-bottom: 6px;
     font-size: 18px;
+    width: 20%;
 }
 .select_input {
     padding: 6px;
@@ -301,10 +317,20 @@
     border: 1px solid #667085;
 }
 .input_form_container > input {
+    width: 50%;
     padding: 6px;
     font-size: 16px;
     border-radius: 5px;
     border: 1px solid #667085;
+}
+.input_form_container > select {
+    width: 50%;
+}
+.input_form_container > textarea {
+    font-size: 16px;
+}
+.input_form_container > select:focus {
+    outline: none;
 }
 .input_form_container > input:focus {
     outline: none;
@@ -313,7 +339,7 @@
     padding: 8px;
     font-size: 16px;
     border-radius: 5px;
-    width: 40%;
+    width: 20%;
     background: transparent;
     background-color: #006cb7;
     color: #fff;
@@ -325,7 +351,7 @@
     background-color: #005595;
 }
 .image-reviews {
-    margin-top: 8px;
+    margin-top: 20px;
     max-width: 100%;
     flex-wrap: wrap;
     -webkit-box-align: center;
