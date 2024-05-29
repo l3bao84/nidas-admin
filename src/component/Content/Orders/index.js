@@ -98,7 +98,7 @@ function Orders() {
                             {orders &&
                                 orders.map((item, index) => (
                                     <tr key={index}>
-                                        <td>{index + 1}</td>
+                                        <td>{item.orderId}</td>
                                         <td>
                                             <span>{item.orderDate}</span>
                                         </td>

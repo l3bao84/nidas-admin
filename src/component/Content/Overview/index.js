@@ -143,11 +143,11 @@ function Overview() {
             resetDateInputs()
             return;
         }
-        if (calculateDateDifference(startDate, endDate) > 30) {
-            alert('The difference between the start date and end date must not exceed 30 days.');
-            resetDateInputs()
-            return;
-        }
+        // if (calculateDateDifference(startDate, endDate) > 30) {
+        //     alert('The difference between the start date and end date must not exceed 30 days.');
+        //     resetDateInputs()
+        //     return;
+        // }
 
         getOrderStatistic(format(startDate, 'dd/MM/yyyy'), format(endDate, 'dd/MM/yyyy')).then((data) => {
             const labels = [];

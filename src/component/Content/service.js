@@ -149,12 +149,6 @@ export const useOrders = (id,page) => {
             return;
         }
 
-        if(id === '') {
-            id = 0
-        }else {
-            id = Number(id)
-        }
-
         fetch(`http://localhost:8080/api/v1/admin/orders?id=${id}&page=${page}`, {
             method: 'GET',
             headers: {
